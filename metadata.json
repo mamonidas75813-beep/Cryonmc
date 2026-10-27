@@ -1,0 +1,6 @@
+{
+  "name": "Minecraft Server Network & Store",
+  "description": "A premium, modern Minecraft server website and store featuring ranks, coins, crates, tags, multi-currency support, and player account portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
