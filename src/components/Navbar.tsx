@@ -37,6 +37,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../context/ProductsContext';
 import { CurrencyCode } from '../types';
 import { fetchServerStatus, ServerPingStatus } from '../services/serverStatusApi';
+import { resolveAsset } from '../utils/resolveAsset';
 
 interface NavbarProps {
   currentPath: string;
@@ -222,11 +223,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPath, navigate, openSearc
           >
             <div className="relative w-11 h-11 rounded-full p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.5)] group-hover:shadow-[0_0_28px_rgba(6,182,212,0.8)] transition-all bg-gradient-to-tr from-cyan-600 to-blue-400">
               <img
-                src={serverConfig.logoUrl || '/cryon-logo.png'}
+                src={resolveAsset(serverConfig.logoUrl || '/cryon-logo.png')}
                 alt={serverConfig.serverName}
                 className="w-full h-full rounded-full object-contain bg-[#060a12]"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/cryon-logo.png';
+                  (e.target as HTMLImageElement).src = resolveAsset('/cryon-logo.png');
                 }}
               />
             </div>

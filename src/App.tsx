@@ -23,15 +23,26 @@ import { StaffPage } from './pages/StaffPage';
 import { ApplyPage } from './pages/ApplyPage';
 import { Product, ProductCategory } from './types';
 
-function MainApp() {
-  const [currentPath, setCurrentPath] = useState<string>(() => {
-    // Check path or hash fallback for resilient navigation in iframes
-    const hash = window.location.hash.replace(/^#/, '');
-    if (hash && hash.startsWith('/')) {
-      return hash;
+function getNormalizedPath(): string {
+  const hash = window.location.hash.replace(/^#/, '');
+  if (hash && hash.startsWith('/')) {
+    return hash;
+  }
+  let pathname = window.location.pathname || '/';
+  if (typeof window !== 'undefined' && window.location.hostname.endsWith('github.io')) {
+    // On github.io, the first path segment is repo name (e.g. /repo-name/category)
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length > 1) {
+      pathname = '/' + parts.slice(1).join('/');
+    } else {
+      pathname = '/';
     }
-    return window.location.pathname || '/';
-  });
+  }
+  return pathname || '/';
+}
+
+function MainApp() {
+  const [currentPath, setCurrentPath] = useState<string>(() => getNormalizedPath());
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -40,27 +51,31 @@ function MainApp() {
   const { addToCart } = useCart();
   const { categories } = useProducts();
 
-  // Handle browser back/forward buttons
+  // Handle browser back/forward buttons & hash routing
   useEffect(() => {
-    const handlePopState = () => {
-      const hash = window.location.hash.replace(/^#/, '');
-      if (hash && hash.startsWith('/')) {
-        setCurrentPath(hash);
-      } else {
-        setCurrentPath(window.location.pathname || '/');
-      }
+    const handleRouteChange = () => {
+      setCurrentPath(getNormalizedPath());
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleRouteChange);
+    window.addEventListener('hashchange', handleRouteChange);
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+      window.removeEventListener('hashchange', handleRouteChange);
+    };
   }, []);
 
   const navigate = (path: string) => {
     setCurrentPath(path);
-    try {
-      window.history.pushState({}, '', path);
-    } catch {
+    const isGitHubPages = typeof window !== 'undefined' && window.location.hostname.endsWith('github.io');
+    if (isGitHubPages) {
       window.location.hash = path;
+    } else {
+      try {
+        window.history.pushState({}, '', path);
+      } catch {
+        window.location.hash = path;
+      }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
